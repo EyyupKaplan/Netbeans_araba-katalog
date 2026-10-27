@@ -1,0 +1,457 @@
+package araba.kataloğumuz;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
+// Araba sınıfı: Araç detaylarını, tüketim miktarını ve hediye koşullarını tutar
+class Araba {
+    String yakitTuru;
+    String kasaTipi;
+    String marka;
+    String model;
+    String motorHacmi;
+    String vitesTuru;
+    String aracTuru;
+    int yil;
+    double fiyat;
+    String hizlanma;
+    double kullaniciPuani;
+    String ulke;
+    String ozellikler;
+    String taksitBilgisi;
+    String tuketim;
+
+    public Araba(String yakitTuru, String kasaTipi, String marka, String model, String motorHacmi, String vitesTuru, String aracTuru, int yil, double fiyat, String hizlanma, double kullaniciPuani, String ulke, String ozellikler, String taksitBilgisi, String tuketim) {
+        this.yakitTuru = yakitTuru;
+        this.kasaTipi = kasaTipi;
+        this.marka = marka;
+        this.model = model;
+        this.motorHacmi = motorHacmi;
+        this.vitesTuru = vitesTuru;
+        this.aracTuru = aracTuru;
+        this.yil = yil;
+        this.fiyat = fiyat;
+        this.hizlanma = hizlanma;
+        this.kullaniciPuani = kullaniciPuani;
+        this.ulke = ulke;
+        this.ozellikler = ozellikler;
+        this.taksitBilgisi = taksitBilgisi;
+        this.tuketim = tuketim;
+    }
+
+    // Araç bilgilerini formatlı döndüren metot
+    public String getBilgiler(String secilenRenk) {
+        String renkGosterge = (secilenRenk == null || secilenRenk.equals("Seçiniz...")) ? "Standart / Belirtilmedi" : secilenRenk;
+        
+        String bilgi = "Marka: " + marka + " | Model: " + model + " | Tür: " + aracTuru + "\n" +
+               "Ülke: " + ulke + " | Yıl: " + yil + " | Vites: " + vitesTuru + "\n" +
+               "Yakıt: " + yakitTuru + " | Kasa: " + kasaTipi + " | Motor: " + motorHacmi + "\n" +
+               "0-100: " + hizlanma + " | Tüketim: " + tuketim + "\n" +
+               "Kullanıcı Puanı: " + kullaniciPuani + "/10 | Seçilen Renk: " + renkGosterge + "\n" +
+               "Taksit İmkanı: " + taksitBilgisi + " | Fiyat: " + String.format("%,.0f", fiyat) + " TL\n" +
+               "Özellikler: " + ozellikler;
+
+        if (fiyat > 2000000) {
+            bilgi += "\n[NOT: 2.000.000 TL üzeri satışlarda Temizlik Kiti ve 4 Adet Lastik Hediyedir!]";
+        }
+
+        return bilgi;
+    }
+}
+
+// Ana Form Sınıfı
+public class ARABAKATALOĞUMUZ extends JFrame {
+    
+    private JLabel lblBaslik, lblYakit, lblKasa, lblMarka, lblTur, lblMotor, lblVites, lblRenk, lblMinFiyat, lblMaxFiyat, lblSiralama;
+    private JComboBox<String> cbYakit, cbKasa, cbMarka, cbTur, cbMotor, cbVites, cbRenk, cbSiralama;
+    private JTextField txtMinFiyat, txtMaxFiyat;
+    private JButton btnAra, btnTemizle, btnTestSurusu;
+    private JCheckBox chkDarkMode; // Özellik 4: Koyu Tema Seçeneği
+    private JTextArea txtSonuc;
+    private JScrollPane scrollPane;
+    private ArrayList<Araba> arabaListesi;
+
+    public ARABAKATALOĞUMUZ() {
+        // Pencere temel ayarları
+        setTitle("OTOMOTİV 12 - Araba Kataloğu");
+        setSize(540, 890);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(null);
+        setLocationRelativeTo(null);
+
+        // En üst başlık
+        lblBaslik = new JLabel("OTOMOTİV 12", JLabel.CENTER);
+        lblBaslik.setBounds(50, 15, 420, 30);
+        lblBaslik.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 20));
+        add(lblBaslik);
+
+        // Yakıt türü seçimi
+        lblYakit = new JLabel("Yakıt Türü*:");
+        lblYakit.setBounds(50, 55, 120, 25);
+        add(lblYakit);
+
+        cbYakit = new JComboBox<>(new String[]{"Seçiniz...", "Benzinli", "Dizel", "Elektrikli", "Hibrit", "LPG'li"});
+        cbYakit.setBounds(180, 55, 280, 25);
+        add(cbYakit);
+
+        // Kasa tipi seçimi
+        lblKasa = new JLabel("Kasa Tipi*:");
+        lblKasa.setBounds(50, 90, 120, 25);
+        add(lblKasa);
+
+        cbKasa = new JComboBox<>(new String[]{"Seçiniz...", "Sedan", "Hatchback", "SUV", "Coupe", "Station Wagon", "Pickup", "Cabriolet"});
+        cbKasa.setBounds(180, 90, 280, 25);
+        add(cbKasa);
+
+        // Marka seçimi
+        lblMarka = new JLabel("Marka*:");
+        lblMarka.setBounds(50, 125, 120, 25);
+        add(lblMarka);
+
+        cbMarka = new JComboBox<>(new String[]{"Seçiniz...", "BMW", "Audi", "Mercedes", "Ford", "Toyota", "Volkswagen", "Renault", "Fiat", "Honda", "Tesla", "Volvo", "Hyundai", "Kia", "Peugeot", "Skoda"});
+        cbMarka.setBounds(180, 125, 280, 25);
+        add(cbMarka);
+
+        // Araç çeşidi seçimi
+        lblTur = new JLabel("Araç Çeşidi:");
+        lblTur.setBounds(50, 160, 120, 25);
+        add(lblTur);
+
+        cbTur = new JComboBox<>(new String[]{"Seçiniz...", "Binek / Otomobil", "Yarış Arabası", "Ticari Araç", "SUV / Arazi"});
+        cbTur.setBounds(180, 160, 280, 25);
+        add(cbTur);
+
+        // Motor hacmi seçimi
+        lblMotor = new JLabel("Motor Hacmi:");
+        lblMotor.setBounds(50, 195, 120, 25);
+        add(lblMotor);
+
+        cbMotor = new JComboBox<>(new String[]{"Seçiniz...", "1.0", "1.2", "1.3", "1.4", "1.5", "1.6", "1.8", "2.0", "3.0", "Elektrik Motoru"});
+        cbMotor.setBounds(180, 195, 280, 25);
+        add(cbMotor);
+
+        // Vites türü seçimi
+        lblVites = new JLabel("Vites Türü:");
+        lblVites.setBounds(50, 230, 120, 25);
+        add(lblVites);
+
+        cbVites = new JComboBox<>(new String[]{"Seçiniz...", "Manuel", "Otomatik"});
+        cbVites.setBounds(180, 230, 280, 25);
+        add(cbVites);
+
+        // Renk seçimi
+        lblRenk = new JLabel("Araba Rengi:");
+        lblRenk.setBounds(50, 265, 120, 25);
+        add(lblRenk);
+
+        cbRenk = new JComboBox<>(new String[]{"Seçiniz...", "Beyaz", "Siyah", "Gri", "Kırmızı", "Mavi", "Lacivert", "Gümüş Gri", "Füme"});
+        cbRenk.setBounds(180, 265, 280, 25);
+        add(cbRenk);
+
+        // Fiyat aralığı
+        lblMinFiyat = new JLabel("Min - Max Fiyat:");
+        lblMinFiyat.setBounds(50, 300, 120, 25);
+        add(lblMinFiyat);
+
+        txtMinFiyat = new JTextField("0");
+        txtMinFiyat.setBounds(180, 300, 130, 25);
+        add(txtMinFiyat);
+
+        txtMaxFiyat = new JTextField("10000000");
+        txtMaxFiyat.setBounds(330, 300, 130, 25);
+        add(txtMaxFiyat);
+
+        // Sıralama ölçütü
+        lblSiralama = new JLabel("Sıralama Ölçütü:");
+        lblSiralama.setBounds(50, 335, 120, 25);
+        add(lblSiralama);
+
+        cbSiralama = new JComboBox<>(new String[]{"Varsayılan", "Fiyata Göre (Artan - Ucuzdan Pahalıya)", "Fiyata Göre (Azalan - Pahalıdan Ucuza)", "Kullanıcı Puanına Göre (En Yüksek Puan)"});
+        cbSiralama.setBounds(180, 335, 280, 25);
+        add(cbSiralama);
+
+        // Özellik 4: Koyu Tema (Dark Mode) Checkbox
+        chkDarkMode = new JCheckBox("Koyu Tema (Dark Mode)");
+        chkDarkMode.setBounds(180, 370, 280, 25);
+        add(chkDarkMode);
+
+        // Katalog verilerini yükle
+        arabaListesiDoldur();
+
+        // Butonlar
+        btnAra = new JButton("Listele");
+        btnAra.setBounds(180, 405, 135, 35);
+        add(btnAra);
+
+        btnTemizle = new JButton("Temizle");
+        btnTemizle.setBounds(325, 405, 135, 35);
+        add(btnTemizle);
+
+        // Sonuç alanı
+        txtSonuc = new JTextArea();
+        txtSonuc.setEditable(false);
+        scrollPane = new JScrollPane(txtSonuc);
+        scrollPane.setBounds(50, 455, 410, 300);
+        add(scrollPane);
+
+        // Özellik 1: Test Sürüşü Randevu Butonu
+        btnTestSurusu = new JButton("Test Sürüşü Randevusu Al");
+        btnTestSurusu.setBounds(50, 765, 410, 35);
+        add(btnTestSurusu);
+
+        // Dinleyiciler
+        btnAra.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                arabaBulVeGoster();
+            }
+        });
+
+        btnTemizle.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                formuTemizle();
+            }
+        });
+
+        // Koyu tema dinleyicisi
+        chkDarkMode.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                temaDegistir(chkDarkMode.isSelected());
+            }
+        });
+
+        // Test sürüşü penceresi açma dinleyicisi
+        btnTestSurusu.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                testSurusuPenceresiAc();
+            }
+        });
+    }
+
+    // Katalog verileri
+    private void arabaListesiDoldur() {
+        arabaListesi = new ArrayList<>();
+        arabaListesi.add(new Araba("Benzinli", "Sedan", "BMW", "320i", "1.6", "Otomatik", "Binek / Otomobil", 2024, 1450000, "8.5 saniye", 9.1, "Almanya", "ABS, ESP, Deri Koltuk, Sunroof", "12 Taksit imkanı", "100 km'de 6.3 Litre"));
+        arabaListesi.add(new Araba("Benzinli", "Coupe", "BMW", "M4 Competition", "3.0", "Otomatik", "Yarış Arabası", 2024, 4500000, "3.5 saniye", 9.8, "Almanya", "Özel Yarış Modu, Seramik Frenler", "24 Taksit imkanı", "100 km'de 10.5 Litre"));
+        arabaListesi.add(new Araba("Elektrikli", "SUV", "BMW", "iX3", "Elektrik Motoru", "Otomatik", "SUV / Arazi", 2024, 3100000, "6.8 saniye", 9.2, "Almanya", "Panoramik Cam Tavan, Otopilot", "18 Taksit imkanı", "100 km'de 18.5 kWh"));
+        arabaListesi.add(new Araba("Benzinli", "Sedan", "Audi", "A4", "1.4", "Otomatik", "Binek / Otomobil", 2023, 1320000, "9.1 saniye", 8.8, "Almanya", "Matrix LED Far, Dijital Gösterge", "12 Taksit imkanı", "100 km'de 5.9 Litre"));
+        arabaListesi.add(new Araba("Dizel", "Sedan", "Mercedes", "C200d", "2.0", "Otomatik", "Binek / Otomobil", 2024, 2450000, "7.4 saniye", 9.5, "Almanya", "Ambiyans Aydınlatma, Akıllı Multimedya", "18 Taksit imkanı", "100 km'de 4.8 Litre"));
+        arabaListesi.add(new Araba("LPG'li", "Hatchback", "Renault", "Clio", "1.4", "Manuel", "Binek / Otomobil", 2021, 750000, "12.0 saniye", 7.9, "Fransa", "Fabrika Çıkışlı LPG, Eco Modu", "12 Taksit imkanı", "100 km'de 6.0 Litre LPG"));
+        arabaListesi.add(new Araba("Hibrit", "Sedan", "Toyota", "Corolla Hybrid", "1.6", "Otomatik", "Binek / Otomobil", 2023, 1350000, "10.1 saniye", 9.2, "Japonya", "Düşük Yakıt Tüketimi, Güvenlik Paketi", "15 Taksit imkanı", "100 km'de 3.8 Litre"));
+        arabaListesi.add(new Araba("Elektrikli", "SUV", "Tesla", "Model Y", "Elektrik Motoru", "Otomatik", "SUV / Arazi", 2024, 2300000, "4.1 saniye", 9.6, "ABD", "Otopilot, Cam Tavan, Devasa Ekran", "18 Taksit imkanı", "100 km'de 16.0 kWh"));
+    }
+
+    // Özellik 4: Koyu Tema Uygulama Metodu
+    private void temaDegistir(boolean koyuMu) {
+        if (koyuMu) {
+            getContentPane().setBackground(new Color(45, 45, 45));
+            lblBaslik.setForeground(Color.WHITE);
+            // Tüm etiketlerin rengini beyaz yap
+            Component[] bileşenler = getContentPane().getComponents();
+            for (Component c : bileşenler) {
+                if (c instanceof JLabel) {
+                    ((JLabel) c).setForeground(Color.WHITE);
+                }
+            }
+            chkDarkMode.setForeground(Color.WHITE);
+            chkDarkMode.setBackground(new Color(45, 45, 45));
+            txtSonuc.setBackground(new Color(30, 30, 30));
+            txtSonuc.setForeground(Color.GREEN);
+        } else {
+            getContentPane().setBackground(null);
+            lblBaslik.setForeground(Color.BLACK);
+            Component[] bileşenler = getContentPane().getComponents();
+            for (Component c : bileşenler) {
+                if (c instanceof JLabel) {
+                    ((JLabel) c).setForeground(Color.BLACK);
+                }
+            }
+            chkDarkMode.setForeground(Color.BLACK);
+            chkDarkMode.setBackground(null);
+            txtSonuc.setBackground(Color.WHITE);
+            txtSonuc.setForeground(Color.BLACK);
+        }
+    }
+
+    // Özellik 1: Test Sürüşü Randevu Formu Açma (JDialog)
+    private void testSurusuPenceresiAc() {
+        JDialog dialog = new JDialog(this, "Test Sürüşü Randevu Formu", true);
+        dialog.setSize(380, 320);
+        dialog.setLayout(null);
+        dialog.setLocationRelativeTo(this);
+
+        JLabel lblAdSoyad = new JLabel("Ad Soyad:");
+        lblAdSoyad.setBounds(30, 30, 100, 25);
+        dialog.add(lblAdSoyad);
+
+        JTextField txtAdSoyad = new JTextField();
+        txtAdSoyad.setBounds(130, 30, 190, 25);
+        dialog.add(txtAdSoyad);
+
+        JLabel lblTelefon = new JLabel("Telefon:");
+        lblTelefon.setBounds(30, 70, 100, 25);
+        dialog.add(lblTelefon);
+
+        JTextField txtTelefon = new JTextField();
+        txtTelefon.setBounds(130, 70, 190, 25);
+        dialog.add(txtTelefon);
+
+        JLabel lblAracModel = new JLabel("İstediğiniz Model:");
+        lblAracModel.setBounds(30, 110, 100, 25);
+        dialog.add(lblAracModel);
+
+        JTextField txtAracModel = new JTextField();
+        txtAracModel.setBounds(130, 110, 190, 25);
+        dialog.add(txtAracModel);
+
+        JLabel lblTarih = new JLabel("Randevu Tarihi:");
+        lblTarih.setBounds(30, 150, 100, 25);
+        dialog.add(lblTarih);
+
+        JTextField txtTarih = new JTextField("GG.AA.YYYY");
+        txtTarih.setBounds(130, 150, 190, 25);
+        dialog.add(txtTarih);
+
+        JButton btnOnayla = new JButton("Randevuyu Onayla");
+        btnOnayla.setBounds(130, 200, 190, 35);
+        dialog.add(btnOnayla);
+
+        btnOnayla.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (txtAdSoyad.getText().trim().isEmpty() || txtTelefon.getText().trim().isEmpty() || txtAracModel.getText().trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, "Lütfen tüm alanları doldurunuz!");
+                } else {
+                    JOptionPane.showMessageDialog(dialog, "Sayın " + txtAdSoyad.getText() + ",\n" + txtAracModel.getText() + " modeli için " + txtTarih.getText() + " tarihindeki test sürüşü randevunuz başarıyla oluşturulmuştur.");
+                    dialog.dispose();
+                }
+            }
+        });
+
+        dialog.setVisible(true);
+    }
+
+    // Formu Temizleme
+    private void formuTemizle() {
+        cbYakit.setSelectedIndex(0);
+        cbKasa.setSelectedIndex(0);
+        cbMarka.setSelectedIndex(0);
+        cbTur.setSelectedIndex(0);
+        cbMotor.setSelectedIndex(0);
+        cbVites.setSelectedIndex(0);
+        cbRenk.setSelectedIndex(0);
+        cbSiralama.setSelectedIndex(0);
+        txtMinFiyat.setText("0");
+        txtMaxFiyat.setText("10000000");
+        txtSonuc.setText("");
+        chkDarkMode.setSelected(false);
+        temaDegistir(false);
+    }
+
+    // Arama, Filtreleme, Sıralama ve Esnek Öneri Mantığı
+    private void arabaBulVeGoster() {
+        String secilenYakit = (String) cbYakit.getSelectedItem();
+        String secilenKasa = (String) cbKasa.getSelectedItem();
+        String secilenMarka = (String) cbMarka.getSelectedItem();
+        String secilenTur = (String) cbTur.getSelectedItem();
+        String secilenMotor = (String) cbMotor.getSelectedItem();
+        String secilenVites = (String) cbVites.getSelectedItem();
+        String secilenRenk = (String) cbRenk.getSelectedItem();
+        int siralamaTuru = cbSiralama.getSelectedIndex();
+
+        if (secilenYakit.equals("Seçiniz...") || secilenKasa.equals("Seçiniz...") || 
+            secilenMarka.equals("Seçiniz...")) {
+            txtSonuc.setText("Lütfen en azından Yakıt Türü, Kasa Tipi ve Marka alanlarını seçiniz!\n\nBizi tercih ettiğiniz için teşekkürler.");
+            return;
+        }
+
+        double minFiyat = 0;
+        double maxFiyat = Double.MAX_VALUE;
+        try {
+            if (!txtMinFiyat.getText().trim().isEmpty()) {
+                minFiyat = Double.parseDouble(txtMinFiyat.getText().trim());
+            }
+            if (!txtMaxFiyat.getText().trim().isEmpty()) {
+                maxFiyat = Double.parseDouble(txtMaxFiyat.getText().trim());
+            }
+        } catch (NumberFormatException ex) {
+            txtSonuc.setText("Lütfen fiyat alanlarına geçerli sayılar giriniz!");
+            return;
+        }
+
+        ArrayList<Araba> bulunanlar = new ArrayList<>();
+        
+        for (Araba a : arabaListesi) {
+            boolean uygunluk = a.yakitTuru.equals(secilenYakit) && 
+                               a.kasaTipi.equals(secilenKasa) && 
+                               a.marka.equals(secilenMarka) &&
+                               a.fiyat >= minFiyat && a.fiyat <= maxFiyat;
+
+            if (!secilenTur.equals("Seçiniz...") && !a.aracTuru.equals(secilenTur)) uygunluk = false;
+            if (!secilenMotor.equals("Seçiniz...") && !a.motorHacmi.equals(secilenMotor)) uygunluk = false;
+            if (!secilenVites.equals("Seçiniz...") && !a.vitesTuru.equals(secilenVites)) uygunluk = false;
+
+            if (uygunluk) {
+                bulunanlar.add(a);
+            }
+        }
+
+        boolean alternatifMi = false;
+        if (bulunanlar.isEmpty()) {
+            alternatifMi = true;
+            for (Araba a : arabaListesi) {
+                if ((a.marka.equals(secilenMarka) || a.yakitTuru.equals(secilenYakit)) && 
+                    a.fiyat >= minFiyat && a.fiyat <= maxFiyat) {
+                    bulunanlar.add(a);
+                }
+            }
+        }
+
+        if (!bulunanlar.isEmpty()) {
+            if (siralamaTuru == 1) {
+                Collections.sort(bulunanlar, Comparator.comparingDouble(a -> a.fiyat));
+            } else if (siralamaTuru == 2) {
+                Collections.sort(bulunanlar, (a, b) -> Double.compare(b.fiyat, a.fiyat));
+            } else if (siralamaTuru == 3) {
+                Collections.sort(bulunanlar, (a, b) -> Double.compare(b.kullaniciPuani, a.kullaniciPuani));
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        if (!bulunanlar.isEmpty()) {
+            if (alternatifMi) {
+                sb.append("=== TAM EŞLEŞEN ARAÇ YOK, ALTERNATİFLER SUNULDU ===\n\n");
+            } else {
+                sb.append("=== SİZE ÖZEL ARABA ÖNERİLERİ ===\n\n");
+            }
+            
+            for (int i = 0; i < bulunanlar.size(); i++) {
+                sb.append("Size göre araba ").append(i + 1).append(":\n");
+                sb.append(bulunanlar.get(i).getBilgiler(secilenRenk)).append("\n");
+                sb.append("--------------------------------------------------\n");
+            }
+        } else {
+            sb.append("Uygun araba yok.\n\n");
+        }
+
+        sb.append("\nBizi tercih ettiğiniz için teşekkürler.");
+        txtSonuc.setText(sb.toString());
+    }
+
+    // Main metodu
+    public static void main(String[] args) {
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new ARABAKATALOĞUMUZ().setVisible(true);
+            }
+        });
+    }
+}
